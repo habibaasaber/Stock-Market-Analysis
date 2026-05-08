@@ -55,8 +55,7 @@ if data_source == "Research (Excel Sheet)":
 st.sidebar.divider()
 model_type = st.sidebar.radio("AI Engine", [
     "Random Forest (Ensemble)", 
-    "Linear Regression (Baseline)",
-    "Neural Network (Deep Learning Proxy)"
+    "Linear Regression (Baseline)"
 ])
 
 if st.sidebar.button("🔄 Force Intelligence Refresh"):
@@ -178,10 +177,8 @@ scaler = StandardScaler()
 
 if "Random Forest" in model_type:
     model = RandomForestRegressor(n_estimators=100, random_state=42)
-elif "Linear Regression" in model_type:
-    model = LinearRegression()
 else:
-    model = MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=500, random_state=42) # Deep Learning Proxy
+    model = LinearRegression()
 
 # Train & Eval
 split = int(len(model_df) * 0.8)
