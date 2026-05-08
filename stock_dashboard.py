@@ -35,7 +35,7 @@ st.sidebar.header("🕹️ Intelligence Console")
 # 🟢 New Data Source Logic
 data_source = st.sidebar.radio("Data Source", ["Live (Yahoo Finance)", "Research (Excel Sheet)"], index=1)
 
-available_tickers = ["XOM", "NFLX", "PLTR", "DAL", "KO", "TSLA", "AAPL"]
+available_tickers = ["XOM", "NFLX", "PLTR", "DAL", "KO"]
 if data_source == "Research (Excel Sheet)":
     try:
         xl = pd.ExcelFile('stock_cleaned.xlsx')
@@ -46,12 +46,11 @@ if data_source == "Research (Excel Sheet)":
 
 ticker_symbol = st.sidebar.selectbox("Select Asset", available_tickers)
 
-if data_source == "Live (Yahoo Finance)":
-    period = st.sidebar.selectbox("Analysis Window", ["3mo", "6mo", "1y", "2y", "5y"], index=2)
-    interval = st.sidebar.selectbox("Data Granularity", ["1d", "1wk"], index=0, help="Daily or Weekly is recommended for ML features to be meaningful.")
-else:
+# Set defaults internally to simplify the UI
+period, interval = "1y", "1d"
+
+if data_source == "Research (Excel Sheet)":
     st.sidebar.info("📅 Using static time-period from Notebook export.")
-    period, interval = "N/A", "N/A"
 
 st.sidebar.divider()
 model_type = st.sidebar.radio("AI Engine", [
