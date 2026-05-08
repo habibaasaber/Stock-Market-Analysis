@@ -67,20 +67,39 @@ if st.sidebar.button("🔄 Force Intelligence Refresh"):
 # --- Helper Functions ---
 @st.cache_data(ttl=300)
 def fetch_intelligence(ticker, period, interval, source):
-    t_obj = yf.Ticker(ticker)
-    
     if source == "Research (Excel Sheet)":
-        # Load from Excel
-        df = pd.read_excel('stock_cleaned.xlsx', sheet_name=ticker, skiprows=1)
-        df['Datetime'] = pd.to_datetime(df['Datetime'])
-        df.set_index('Datetime', inplace=True)
-        # Ensure we have the basic columns
-        return df, t_obj.info, t_obj.news
+        # 🟢 Pure Offline Mode: Load from Excel only
+        try:
+            df = pd.read_excel('stock_cleaned.xlsx', sheet_name=ticker, skiprows=1)
+            df['Datetime'] = pd.to_datetime(df['Datetime'])
+            df.set_index('Datetime', inplace=True)
+            # Default empty info/news if offline
+            return df, {"longName": ticker}, []
+        except Exception as e:
+            st.error(f"Error loading Excel sheet: {e}")
+            return pd.DataFrame(), {}, []
     else:
-        # Load from Live
-        df = t_obj.history(period=period, interval=interval)
-        df.columns = [col[0] if isinstance(col, tuple) else col for col in df.columns]
-        return df, t_obj.info, t_obj.news
+        # 🔵 Live Mode: Robust error handling for rate limits
+        try:
+            t_obj = yf.Ticker(ticker)
+            df = t_obj.history(period=period, interval=interval)
+            df.columns = [col[0] if isinstance(col, tuple) else col for col in df.columns]
+            
+            # Try to get info/news but don't crash if it fails
+            try:
+                info = t_obj.info
+            except:
+                info = {"longName": ticker}
+            
+            try:
+                news = t_obj.news
+            except:
+                news = []
+                
+            return df, info, news
+        except Exception as e:
+            st.error(f"Live Data Error (likely rate limit): {e}")
+            return pd.DataFrame(), {}, []
 
 def analyze_sentiment(news_list):
     pos_words = ['up', 'surge', 'jump', 'rise', 'gain', 'buy', 'outperform', 'bull', 'profit', 'growth', 'upgrade']
